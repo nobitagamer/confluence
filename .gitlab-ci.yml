@@ -1,0 +1,33 @@
+stages:
+  - build
+  - release
+
+variables:
+  DOCKER_DRIVER: overlay
+  IMMUTABLE_TAG: "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME"
+  MUTABLE_TAG: "$CI_REGISTRY_IMAGE:latest"
+
+before_script:
+- docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+- docker info
+
+builds:
+  stage: build
+  script:
+    - docker build -t $IMMUTABLE_TAG .
+    - docker push $IMMUTABLE_TAG
+  tags:
+    - dind
+    - linux
+
+release-image:
+  stage: release
+  script:
+    - docker pull $IMMUTABLE_TAG
+    - docker tag $IMMUTABLE_TAG $MUTABLE_TAG
+    - docker push $MUTABLE_TAG
+  only:
+    - master 
+  tags:
+    - dind
+    - linux

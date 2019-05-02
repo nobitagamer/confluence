@@ -259,6 +259,11 @@ fi
 
 if [ "$1" = 'confluence' ]; then
   source /usr/bin/dockerwait
+    
+  /bin/bash ${CONF_SCRIPTS}/patch.sh "*atlassian-universal-plugin-manager-plugin-*.jar" "${CONF_HOME}/bundled-plugins/"
+  /bin/bash ${CONF_SCRIPTS}/patch.sh "*atlassian-universal-plugin-manager-plugin-*.jar" "${CONF_HOME}/plugins-osgi-cache/"
+  /bin/bash ${CONF_SCRIPTS}/patch.sh "*atlassian-universal-plugin-manager-plugin-*.jar" "${CONF_HOME}/plugins-cache/"
+
   exec ${CONF_INSTALL}/bin/start-confluence.sh -fg
 else
   exec "$@"
