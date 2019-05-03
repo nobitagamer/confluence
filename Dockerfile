@@ -1,7 +1,7 @@
 FROM blacklabelops/java:server-jre.8.162
 MAINTAINER Nguyen Khac Trieu <trieunk@yahoo.com>
 
-ARG CONFLUENCE_VERSION=6.15.3
+ARG CONFLUENCE_VERSION=6.15.2
 # permissions
 ARG CONTAINER_UID=1000
 ARG CONTAINER_GID=1000
