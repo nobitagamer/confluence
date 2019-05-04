@@ -6,6 +6,9 @@ variables:
   DOCKER_DRIVER: overlay
   IMMUTABLE_TAG: "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME"
   MUTABLE_TAG: "$CI_REGISTRY_IMAGE:latest"
+  CONFLUENCE_VERSION: "6.15.2"
+  CONTAINER_UID: "7002"
+  CONTAINER_GID: "7002"
 
 before_script:
 - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
@@ -14,7 +17,7 @@ before_script:
 builds:
   stage: build
   script:
-    - docker build -t $IMMUTABLE_TAG .
+    - docker build --build-arg CONFLUENCE_VERSION=$CONFLUENCE_VERSION --build-arg CONTAINER_UID=$CONTAINER_UID --build-arg CONTAINER_GID=$CONTAINER_GID --build-arg BUILD_DATE=$(date +"%d/%m/%y-%T%z") -t $IMMUTABLE_TAG .
     - docker push $IMMUTABLE_TAG
   tags:
     - dind
@@ -22,10 +25,12 @@ builds:
 
 release-image:
   stage: release
+  variables:
+    VERSION_TAG: "$CI_REGISTRY_IMAGE:$CONFLUENCE_VERSION"
   script:
     - docker pull $IMMUTABLE_TAG
-    - docker tag $IMMUTABLE_TAG $MUTABLE_TAG
-    - docker push $MUTABLE_TAG
+    - docker tag $IMMUTABLE_TAG $MUTABLE_TAG && docker push $MUTABLE_TAG
+    - docker tag $IMMUTABLE_TAG $VERSION_TAG && docker push $VERSION_TAG
   only:
     - master 
   tags:
