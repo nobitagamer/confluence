@@ -228,6 +228,19 @@ function processCatalinaConfigurationSettings() {
   fi
 }
 
+#
+# This function purges osgi plugins when env is true
+#
+function purgePlugins() {
+  if [ -d "${CONF_HOME}/plugins-temp" ]; then
+    rm -rf ${CONF_HOME}/plugins-temp
+  fi
+
+  if [ "$CONFLUENCE_PURGE_PLUGINS_ONSTART" = 'true' ]; then
+    bash /usr/local/share/atlassian/purgeplugins.sh
+  fi
+}
+
 if [ -n "${CONFLUENCE_DELAYED_START}" ]; then
   sleep ${CONFLUENCE_DELAYED_START}
 fi
@@ -257,13 +270,16 @@ if [ -n "${CONFLUENCE_CROWD_SSO}" ]; then
   controlCrowdSSO ${CONFLUENCE_CROWD_SSO}
 fi
 
-if [ "$1" = 'confluence' ]; then
+if [ "$1" = 'confluence' ] || [ "${1:0:1}" = '-' ]; then
   source /usr/bin/dockerwait
+
+  purgePlugins
     
   /bin/bash ${CONF_SCRIPTS}/patch.sh "*atlassian-universal-plugin-manager-plugin-*.jar" "${CONF_HOME}/bundled-plugins/"
   /bin/bash ${CONF_SCRIPTS}/patch.sh "*atlassian-universal-plugin-manager-plugin-*.jar" "${CONF_HOME}/plugins-osgi-cache/"
   /bin/bash ${CONF_SCRIPTS}/patch.sh "*atlassian-universal-plugin-manager-plugin-*.jar" "${CONF_HOME}/plugins-cache/"
 
+  rm -f ${CONF_HOME}/lock
   exec ${CONF_INSTALL}/bin/start-confluence.sh -fg
 else
   exec "$@"

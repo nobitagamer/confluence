@@ -81,6 +81,9 @@ RUN mkdir -p ${CONF_HOME} \
     # wget -O ${CONF_HOME}/SSLPoke.class https://confluence.atlassian.com/kb/files/779355358/779355357/1/1441897666313/SSLPoke.class && \
     wget -O /home/${CONTAINER_USER}/SSLPoke.class https://confluence.atlassian.com/kb/files/779355358/779355357/1/1441897666313/SSLPoke.class && \
     chown -R confluence:confluence /home/${CONTAINER_USER} && \
+    # Fix: duplicates for package 'javax.annotation' with different versions
+    rm -f                                               \
+      ${CONF_INSTALL}/confluence/WEB-INF/lib/javax.annotation-api-*.jar &&  \
     # Remove obsolete packages and cleanup
     apk del wget && \
     # Clean caches and tmps
