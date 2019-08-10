@@ -1,5 +1,4 @@
-FROM blacklabelops/java:server-jre.8.162
-MAINTAINER Nguyen Khac Trieu <trieunk@yahoo.com>
+FROM frolvlad/alpine-java:jdk8-slim
 
 ARG CONFLUENCE_VERSION=6.15.7
 # permissions
@@ -27,7 +26,30 @@ RUN export CONTAINER_USER=confluence                &&  \
             -s /bin/bash                                \
             -S $CONTAINER_USER                      
 
+# Alpine Install language pack
+# install libintl
+# then install dev dependencies for musl-locales
+# clone the sources
+# build and install musl-locales
+# remove sources and compile artifacts
+# lastly remove dev dependencies again
+# Test if locales work: docker run <image> sh -c 'date && LC_ALL=de_DE.UTF-8 date'
+RUN apk --no-cache add libintl && \
+	apk --no-cache --virtual .locale_build add cmake make musl-dev gcc gettext-dev git && \
+	git clone https://gitlab.com/rilian-la-te/musl-locales.git && \
+	cd musl-locales && cmake -DLOCALE_PROFILE=OFF -DCMAKE_INSTALL_PREFIX:PATH=/usr . && make && make install && \
+	cd .. && rm -r musl-locales && \
+	apk del .locale_build && \
+  /usr/local/bin/locale -a
+
+# Set the lang, you can also specify it as as environment variable through docker-compose.yml
+ENV LANG=${LANG_LANGUAGE}_${LANG_COUNTRY}.UTF-8 \
+    LANGUAGE=${LANG_LANGUAGE}_${LANG_COUNTRY}.UTF-8 \
+    # set our environment variable
+    MUSL_LOCPATH="/usr/share/i18n/locales/musl"
+
 RUN apk add --update                                    \
+      bash \
       ca-certificates                                   \
       gzip                                              \
       curl                                              \
@@ -43,8 +65,8 @@ RUN apk add --update                                    \
     # Installing true type fonts
     update-ms-fonts                                 && \
     fc-cache -f                                     && \
-    # Setting Locale
-    /usr/glibc-compat/bin/localedef -i ${LANG_LANGUAGE}_${LANG_COUNTRY} -f UTF-8 ${LANG_LANGUAGE}_${LANG_COUNTRY}.UTF-8 && \
+    # Non-Alpine: Setting Locale
+    # /usr/glibc-compat/bin/localedef -i ${LANG_LANGUAGE}_${LANG_COUNTRY} -f UTF-8 ${LANG_LANGUAGE}_${LANG_COUNTRY}.UTF-8 && \
     # Adding letsencrypt-ca to truststore
     export KEYSTORE=$JAVA_HOME/jre/lib/security/cacerts && \
     wget -P /tmp/ https://letsencrypt.org/certs/letsencryptauthorityx1.der && \
@@ -96,15 +118,6 @@ COPY imagescripts ${CONF_SCRIPTS}
 RUN set -x \
     && /bin/bash ${CONF_SCRIPTS}/patch.sh *.jar ${CONF_INSTALL}/confluence/WEB-INF/
 
-# Image Metadata
-LABEL com.blacklabelops.application.confluence.version=$CONFLUENCE_VERSION \
-      com.blacklabelops.application.confluence.setting.language=$LANG_LANGUAGE \
-      com.blacklabelops.application.confluence.setting.country=$LANG_COUNTRY \
-      com.blacklabelops.application.confluence.userid=$CONTAINER_UID \
-      com.blacklabelops.application.confluence.groupid=$CONTAINER_GID \
-      com.blacklabelops.application.version.jdbc-mysql=$MYSQL_DRIVER_VERSION \
-      com.blacklabelops.image.builddate.confluence=${BUILD_DATE}
-
 # Expose default HTTP connector port.
 EXPOSE 8090 8091
 
@@ -115,3 +128,27 @@ WORKDIR ${CONF_HOME}
 COPY docker-entrypoint.sh /home/confluence/docker-entrypoint.sh
 ENTRYPOINT ["/sbin/tini","--","/home/confluence/docker-entrypoint.sh"]
 CMD ["confluence"]
+
+# Image Metadata
+LABEL com.blacklabelops.application.confluence.version=$CONFLUENCE_VERSION \
+      com.blacklabelops.application.confluence.setting.language=$LANG_LANGUAGE \
+      com.blacklabelops.application.confluence.setting.country=$LANG_COUNTRY \
+      com.blacklabelops.application.confluence.userid=$CONTAINER_UID \
+      com.blacklabelops.application.confluence.groupid=$CONTAINER_GID \
+      com.blacklabelops.application.version.jdbc-mysql=$MYSQL_DRIVER_VERSION
+
+# Metadata
+# Image Build Date By Buildsystem
+ARG BUILD_DATE=undefined
+ARG VCS_REF
+ARG VERSION
+LABEL maintainer="Nguyen Khac Trieu <trieunk@yahoo.com>" \
+    org.label-schema.build-date=$BUILD_DATE \
+    org.label-schema.name="Confluence - Alpine" \
+    org.label-schema.description="Provides a Docker image for Confluence on Alpine Linux." \
+    org.label-schema.url="https://trieunk.info/" \
+    org.label-schema.vcs-ref=$VCS_REF \
+    org.label-schema.vcs-url="https://github.com/nobitagamer/confluence-blacklabelops" \
+    org.label-schema.vendor="Trieunk" \
+    org.label-schema.version=$VERSION \
+    org.label-schema.schema-version="1.0"
