@@ -7,8 +7,8 @@ if [ -d "$2" ]; then
     SEARCH_IN=$2
 fi
 
-pushd "${CONF_SCRIPTS}"
-echo "Patching Jira licenses in '$SEARCH_IN'..."
+pushd "${CONFLUENCE_SCRIPTS}"
+echo "Patching Atlassian licenses in '$SEARCH_IN'..."
 
 find $SEARCH_IN -type f -name "$1" -print0 | while IFS= read -r -d $'\0' file; do
     jar tf $file | ( \

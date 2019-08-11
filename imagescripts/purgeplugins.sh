@@ -9,10 +9,10 @@ set -o errexit
 
 [[ ${DEBUG} == true ]] && set -x
 
-if [ -d "${CONF_HOME}/bundled-plugins" ]; then
-  rm -rf ${CONF_HOME}/bundled-plugins
+if [ -d "${CONFLUENCE_HOME}/bundled-plugins" ]; then
+  rm -rf ${CONFLUENCE_HOME}/bundled-plugins
 fi
 
-if [ -d "${CONF_HOME}/plugins-osgi-cache" ]; then
-  rm -rf ${CONF_HOME}/plugins-osgi-cache
+if [ -d "${CONFLUENCE_HOME}/plugins-osgi-cache" ]; then
+  rm -rf ${CONFLUENCE_HOME}/plugins-osgi-cache
 fi
