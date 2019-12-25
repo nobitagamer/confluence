@@ -18,9 +18,16 @@ services:
       - 'CONFLUENCE_PROXY_PORT='
       - 'CONFLUENCE_PROXY_SCHEME='
       - 'CONFLUENCE_DELAYED_START='
+    healthcheck:
+      test: ["CMD", "/docker-healthcheck.sh"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 1m
     labels:
       com.blacklabelops.description: "Atlassian Confluence"
-      com.blacklabelops.service: "confluence"
+      com.blacklabelops.service: "Confluence"
+      com.ragedunicorn.confluence.environment: "prod"
 
   postgresql:
     image: blacklabelops/postgres
@@ -40,7 +47,8 @@ services:
       - 'POSTGRES_COLLATE_TYPE=C'
     labels:
       com.blacklabelops.description: "PostgreSQL Database Server"
-      com.blacklabelops.service: "postgresql"
+      com.blacklabelops.service: "PostgreSQL"
+      com.ragedunicorn.confluence.environment: "prod"
 
 volumes:
   confluencedata:
