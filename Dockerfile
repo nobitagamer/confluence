@@ -6,7 +6,7 @@ FROM frolvlad/alpine-java:jdk8-slim
 #  / /___/ /_/ / / / / __/ / /_/ /  __/ / / / /__/  __/
 #  \____/\____/_/ /_/_/ /_/\__,_/\___/_/ /_/\___/\___/
 
-ARG CONFLUENCE_VERSION=6.15.7
+ARG CONFLUENCE_VERSION=7.1.2
 ARG DOCKERIZE_VERSION=v0.6.1
 ARG MYSQL_DRIVER_VERSION=5.1.48
 ARG POSTGRESQL_DRIVER_VERSION=42.2.6
